@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const application_controller_1 = require("../controllers/application.controller");
+const validate_middleware_1 = require("../middlewares/validate.middleware");
+const application_validator_1 = require("../validators/application.validator");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const client_1 = require("@prisma/client");
+const router = (0, express_1.Router)();
+const controller = new application_controller_1.ApplicationController();
+router.post('/apply', auth_middleware_1.authenticateToken, (0, auth_middleware_1.authorizeRoles)(client_1.Role.JOB_SEEKER), (0, validate_middleware_1.validate)(application_validator_1.applyJobSchema), (req, res, next) => controller.applyJob(req, res, next));
+router.get('/my-applications', auth_middleware_1.authenticateToken, (0, auth_middleware_1.authorizeRoles)(client_1.Role.JOB_SEEKER), (req, res, next) => controller.getMyApplications(req, res, next));
+router.get('/job/:jobId/candidates', auth_middleware_1.authenticateToken, (0, auth_middleware_1.authorizeRoles)(client_1.Role.COMPANY), (req, res, next) => controller.getJobCandidates(req, res, next));
+router.patch('/:id/status', auth_middleware_1.authenticateToken, (0, auth_middleware_1.authorizeRoles)(client_1.Role.COMPANY), (0, validate_middleware_1.validate)(application_validator_1.updateStatusSchema), (req, res, next) => controller.updateCandidateStatus(req, res, next));
+router.get('/:id', auth_middleware_1.authenticateToken, (req, res, next) => controller.getApplicationDetails(req, res, next));
+exports.default = router;

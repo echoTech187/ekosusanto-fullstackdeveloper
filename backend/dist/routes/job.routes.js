@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const job_controller_1 = require("../controllers/job.controller");
+const validate_middleware_1 = require("../middlewares/validate.middleware");
+const job_validator_1 = require("../validators/job.validator");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const client_1 = require("@prisma/client");
+const router = (0, express_1.Router)();
+const controller = new job_controller_1.JobController();
+router.get('/', (req, res, next) => controller.getAllJobs(req, res, next));
+router.get('/company', auth_middleware_1.authenticateToken, (0, auth_middleware_1.authorizeRoles)(client_1.Role.COMPANY), (req, res, next) => controller.getCompanyJobs(req, res, next));
+router.get('/:id', (req, res, next) => controller.getJobById(req, res, next));
+router.post('/', auth_middleware_1.authenticateToken, (0, auth_middleware_1.authorizeRoles)(client_1.Role.COMPANY), (0, validate_middleware_1.validate)(job_validator_1.createJobSchema), (req, res, next) => controller.createJob(req, res, next));
+exports.default = router;
