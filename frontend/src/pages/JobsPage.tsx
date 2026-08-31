@@ -25,9 +25,16 @@ export const JobsPage: React.FC = () => {
           jobType: jobType !== 'ALL' ? jobType : undefined,
         },
       });
-      setJobs(res.data.data);
+      if (Array.isArray(res.data?.data)) {
+        setJobs(res.data.data);
+      } else if (Array.isArray(res.data)) {
+        setJobs(res.data);
+      } else {
+        setJobs([]);
+      }
     } catch (err) {
       console.error('Failed to fetch jobs:', err);
+      setJobs([]);
     } finally {
       setLoading(false);
     }
@@ -40,10 +47,12 @@ export const JobsPage: React.FC = () => {
     }
     try {
       const res = await api.get('/applications/my-applications');
-      const ids = new Set<string>(res.data.data.map((app: Application) => app.jobId));
+      const apps = Array.isArray(res.data?.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
+      const ids = new Set<string>(apps.map((app: Application) => app.jobId));
       setAppliedJobIds(ids);
     } catch (err) {
       console.error('Failed to fetch applications:', err);
+      setAppliedJobIds(new Set());
     }
   };
 
@@ -59,6 +68,8 @@ export const JobsPage: React.FC = () => {
     fetchMyApplications();
     fetchJobs();
   };
+
+  const safeJobs = Array.isArray(jobs) ? jobs : [];
 
   return (
     <div>
@@ -110,7 +121,7 @@ export const JobsPage: React.FC = () => {
             <JobCardSkeleton key={idx} />
           ))}
         </div>
-      ) : jobs.length === 0 ? (
+      ) : safeJobs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#1e293b', borderRadius: '12px', border: '1px solid #334155' }}>
           <Briefcase size={48} color="#64748b" style={{ marginBottom: '1rem' }} />
           <h3 style={{ color: '#f8fafc', fontWeight: 700 }}>Tidak ada lowongan ditemukan</h3>
@@ -121,14 +132,14 @@ export const JobsPage: React.FC = () => {
       ) : (
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', color: '#64748b', fontSize: '0.8rem' }}>
-            <span>Menampilkan {jobs.length} lowongan pekerjaan</span>
+            <span>Menampilkan {safeJobs.length} lowongan pekerjaan</span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: '#10b981', fontWeight: 600 }}>
               <Zap size={14} /> Lazy Loading Aktif
             </span>
           </div>
 
           <div className="grid-cards">
-            {jobs.map((job) => (
+            {safeJobs.map((job) => (
               <JobCard
                 key={job.id}
                 job={job}

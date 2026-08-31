@@ -16,9 +16,16 @@ export const MyApplicationsPage: React.FC = () => {
     setLoading(true);
     try {
       const res = await api.get('/applications/my-applications');
-      setApplications(res.data.data);
+      if (Array.isArray(res.data?.data)) {
+        setApplications(res.data.data);
+      } else if (Array.isArray(res.data)) {
+        setApplications(res.data);
+      } else {
+        setApplications([]);
+      }
     } catch (err) {
       console.error('Failed to fetch my applications:', err);
+      setApplications([]);
     } finally {
       setLoading(false);
     }
@@ -27,6 +34,8 @@ export const MyApplicationsPage: React.FC = () => {
   useEffect(() => {
     fetchApplications();
   }, []);
+
+  const safeApps = Array.isArray(applications) ? applications : [];
 
   return (
     <div>
@@ -43,7 +52,7 @@ export const MyApplicationsPage: React.FC = () => {
         <div style={{ textAlign: 'center', padding: '4rem', color: '#94a3b8' }}>
           🔄 Memuat daftar lamaran...
         </div>
-      ) : applications.length === 0 ? (
+      ) : safeApps.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', background: '#1e293b', borderRadius: '12px', border: '1px solid #334155' }}>
           <FileText size={48} color="#64748b" style={{ marginBottom: '1rem' }} />
           <h3 style={{ color: '#f8fafc', fontWeight: 700 }}>Belum Ada Lamaran Pekerjaan</h3>
@@ -53,7 +62,7 @@ export const MyApplicationsPage: React.FC = () => {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {applications.map((app) => (
+          {safeApps.map((app) => (
             <div key={app.id} className="card application-card-row">
               <div style={{ flex: 1, minWidth: '220px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
