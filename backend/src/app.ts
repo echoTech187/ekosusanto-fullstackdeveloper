@@ -8,6 +8,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Root welcome endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    name: 'E-Loker REST API',
+    status: 'ACTIVE',
+    message: '🚀 E-Loker Backend REST API Service is live and running!',
+    endpoints: {
+      healthCheck: '/api/health',
+      jobs: '/api/jobs',
+      auth: '/api/auth',
+      applications: '/api/applications'
+    }
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
